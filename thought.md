@@ -1,0 +1,6 @@
+- To make stable system in longer run my thought are as
+    - No need of `webpack` because  which often require touching js,css and images and compressing/minification of assets make no sense
+    - Any now a dyas we have powerful server and services which can do network latency
+    - Lets not to use `SPA` concept due to single page it may require more overhad to maintain longer run and need expertise of it to change in every aspect.
+    - `finance` system require `backend` strong not the `frontend` ( Single page application)
+    - People use SP mostly to server customer, here I am the customer who require finance system strong not the `frontend`
