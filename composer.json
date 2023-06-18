@@ -1,26 +1,40 @@
 {
     "name": "vrkansagara/finance",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Personal finance application using Laravel Framework",
     "keywords": [
-        "laravel",
-        "framework"
+        "personal",
+        "finance",
+        "laravel"
     ],
     "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Vallabh Kansagara",
-            "email": "vrkansagara@gmail.com"
+            "email": "vrkansagara@gmail.com",
+            "homepage": "https://vrkansagara.in",
+            "role": "Owner"
         }
     ],
+    "support": {
+        "email": "vrkansagara@gmail.com",
+        "irc": "irc://irc.freenode.org/composer",
+        "issues": "https://github.com/vrkansagara/finance/issues",
+        "source": "https://github.com/vrkansagara/finance/releases"
+    },
     "require": {
         "php": ">=8.2",
+        "baum/baum": "^3.0",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2",
-        "vrkansagara/lara-out-press": "dev-master"
+        "laravelcollective/html": "^6.4",
+        "spatie/laravel-medialibrary": "^10.9",
+        "spatie/laravel-permission": "^5.10",
+        "vrkansagara/lara-out-press": "dev-master",
+        "yajra/laravel-datatables-oracle": "^10.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -28,7 +42,9 @@
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^7.0",
+        "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^10.2",
+        "roave/security-advisories": "dev-latest",
         "spatie/laravel-ignition": "^2.0",
         "squizlabs/php_codesniffer": "^3.7"
     },
@@ -37,7 +53,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/app.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -58,10 +77,49 @@
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
         ],
+        "serve": [
+            "php composer.phar dumpautoload",
+            "@permission",
+            "@clear",
+            "# sudo chmod -R a+x ./node_modules",
+            "if sudo lsof -t -i:8090; then sudo kill -9 $(sudo lsof -t -i:8090 ); fi",
+            "sudo -u $USER php -S 127.0.0.1:8090 -t public/"
+        ],
+        "permission-readonly": [
+            "sudo find ./ -type f -exec chmod 644 {} \\;",
+            "sudo find ./ -type d -exec chmod 755 {} \\;"
+        ],
         "permission": [
-            "chmod 0775 -R $(pwd)/vendor",
-            "chmod +x -R $(pwd)/bin",
-            "chmod +x -R $(pwd)/vendor/bin"
+            "sudo usermod -a -G www-data $USER",
+            "sudo chgrp -R www-data ./",
+            "sudo chown -R $USER ./",
+            "sudo chgrp -R www-data storage bootstrap/cache storage/logs storage/framework/views",
+            "sudo chmod -R ug+rwx storage bootstrap/cache storage/logs storage/framework/views",
+            "sudo chown -R $USER storage/logs/",
+            "sudo chmod 0775 -R ./vendor",
+            "sudo chmod +x -R ./vendor/bin",
+            "sudo chmod +x -R ./bin"
+        ],
+        "clear": [
+            "@permission",
+            "sudo rm -rf bootstrap/cache/*.php",
+            "sudo -u $USER php artisan clear-compiled",
+            "sudo -u $USER php composer.phar dump-autoload",
+            "sudo -u $USER php artisan route:clear",
+            "sudo -u $USER php artisan view:clear",
+            "sudo -u $USER php artisan config:clear",
+            "sudo -u $USER php artisan cache:clear",
+            "sudo -u $USER php artisan permission:cache-reset",
+            "sudo -u $USER php artisan cache:forget spatie.permission.cache"
+        ],
+        "composer-update": [
+            "[ ! -f ./composer.phar ] && curl -s http://getcomposer.org/installer | php || php composer.phar self-update"
+        ],
+        "composer-install": [
+            "php composer.phar install --optimize-autoloader"
+        ],
+        "composer-install-production": [
+            "php composer.phar install --no-ansi --no-dev --no-interaction --no-plugins --no-progress --no-scripts --optimize-autoloader"
         ],
         "check": [
             "@cs-check",
@@ -69,7 +127,19 @@
         ],
         "cs-check": "./vendor/bin/phpcs -s",
         "cs-fix": "./vendor/bin/phpcbf --standard=$(pwd)/phpcs.xml",
-        "test": "./vendor/bin/phpunit --testdox --colors=always"
+        "test": [
+            "./vendor/bin/phpunit --testdox --colors=always",
+            "git rev-parse --verify HEAD"
+        ],
+        "test-coverage": "./vendor/bin/phpunit  --colors=always --coverage-clover clover.xml",
+        "production": [
+            "@composer-update",
+            "@composer-install-production",
+            "@permission",
+            "@clear",
+            "sudo /etc/init.d/php8.2-fpm reload",
+            "sudo /etc/init.d/supervisor reload"
+        ]
     },
     "extra": {
         "laravel": {
@@ -77,6 +147,7 @@
         }
     },
     "config": {
+        "process-timeout": 5000,
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,

@@ -24,6 +24,12 @@
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>public/index.php</exclude-pattern>
     </rule>
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>database</exclude-pattern>
+    </rule>
+    <rule ref="Generic.Files.LineLength.TooLong">
+        <exclude-pattern>database</exclude-pattern>
+    </rule>
 
     <!-- Paths to check -->
     <file>public</file>

@@ -43,17 +43,44 @@ composer() {
     fi
 }
 
-composer
+theme() {
+    # Run static theme
+    if sudo lsof -t -i:3000; then sudo kill -9 $(sudo lsof -t -i:3000); fi
+    php -S 0.0.0.0:3000 -d public/theme/index.html -t public/theme
+}
 
-php composer.phar  update
-php composer.phar  dumpautoload -o
-php composer.phar  run permission
-php composer.phar  run test
+git_config() {
+    git config core.filemode false
+    git config commit.gpgsign true
+    git config user.email vrkansagara@gmail.com
+    git config user.name "Vallabh Kansagara"
+    git config user.signingkey 8BA6E7ABD8112B3E
+#    git rebase --signoff HEAD~10
+}
 
-clear
+main() {
+    # Set git config
+    git_config
+
+    # Set local
+    ${SUDO} localedef -i en_GB -f UTF-8 en_GB.UTF-8
+    ${SUDO} localedef -i en_US -f UTF-8 en_US.UTF-8
+
+    if [[ "$1" == "--composer" ]]; then
+        composer
+        php composer.phar update
+        php composer.phar dumpautoload -o
+    fi
+
+    if [[ "$1" == "--theme" ]]; then
+        theme
+    fi
+
+    php composer.phar run permission
+    php composer.phar run test
+
+    echo "$0 is complete......[Done.]"
+}
+main "$@"
 
 # sqlite3 database.sqlite "create table test(id int); drop table test;"
-
-# Run static theme
-if sudo lsof -t -i:3000; then sudo kill -9 $(sudo lsof -t -i:3000); fi
-php -S 0.0.0.0:3000 -d public/theme/index.html -t public/theme
